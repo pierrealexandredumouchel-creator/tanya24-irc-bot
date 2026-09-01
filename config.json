@@ -1,0 +1,7 @@
+{
+  "nick": "Tanya24",
+  "server": "irc.undernet.org",
+  "port": 6667,
+  "channels": ["#montreal", "#kodi", "#command"],
+  "master": "alxd"
+}
