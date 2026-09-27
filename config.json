@@ -1,7 +1,14 @@
 {
   "nick": "Tanya24",
-  "server": "irc.undernet.org",
+  "server": "irc6.undernet.org",
   "port": 6667,
-  "channels": ["#montreal", "#kodi", "#command"],
-  "master": "alxd"
+  "channels": [
+    "#montreal",
+    "#kodi",
+    "#command"
+  ],
+  "master": "alxd",
+  "bindhost": "2001:470:b2af::4",
+  "xlogin_account": "tanya",
+  "channel_password": "Wo9ePGOX"
 }

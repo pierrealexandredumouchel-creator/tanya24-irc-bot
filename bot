@@ -6,7 +6,6 @@ import os
 import socket
 import json
 from datetime import datetime
-from modules import natural_ai
 
 CONFIG_PATH = "config.json"
 
@@ -18,23 +17,15 @@ class TanyaIRCBot:
         self.nick = config["nick"]
         self.channels = config["channels"]
         self.master = config["master"]
-        self.bindhost = config.get("bindhost")
-        self.xlogin_account = config.get("xlogin_account", self.nick)
-        self.channel_password = config.get("channel_password")
         self.realname = "Tanya24 C&C Bot"
         self.reader = None
         self.writer = None
-
-        # Ghost Watch
         self.watch_ips = set()
-        self.watch_nicks = set(["corky", "Corky", "corky_", "Vader"])
+        self.watch_nicks = set(["corky", "Corky", "corky_"])  # ton ami de la rue Sabbatino
 
     async def connect(self):
         print(f"[{self.ts()}] Tanya24: Connecting to {self.server}:{self.port}...")
-        local_addr = (self.bindhost, 0) if self.bindhost else None
-        self.reader, self.writer = await asyncio.open_connection(
-            self.server, self.port, local_addr=local_addr
-        )
+        self.reader, self.writer = await asyncio.open_connection(self.server, self.port)
         self.send_raw(f"NICK {self.nick}")
         self.send_raw(f"USER {self.nick} 0 * :{self.realname}")
 
@@ -47,14 +38,6 @@ class TanyaIRCBot:
         for chan in self.channels:
             self.send_raw(f"JOIN {chan}")
             await asyncio.sleep(1)
-
-    async def x_login(self):
-        if not self.channel_password:
-            return
-        self.send_raw(f"PRIVMSG x@channels.undernet.org :LOGIN {self.xlogin_account} {self.channel_password}")
-        await asyncio.sleep(2)
-        self.send_raw(f"MODE {self.nick} +x")
-        await asyncio.sleep(1)
 
     async def handle_line(self, line: str):
         line = line.strip("\r\n")
@@ -79,7 +62,6 @@ class TanyaIRCBot:
 
         # 001 = welcome
         if cmd == "001":
-            await self.x_login()
             await self.join_channels()
             print(f"[{self.ts()}] Tanya24: Joined channels {self.channels}")
             return
@@ -93,7 +75,7 @@ class TanyaIRCBot:
             await self.handle_privmsg(nick, target, msg, prefix)
 
     async def handle_privmsg(self, nick: str, target: str, msg: str, prefix: str):
-        # Surveillance Ghost
+        # Surveillance des nicks / IPs
         await self.watch_activity(nick, prefix, target, msg)
 
         # Commandes du maître
@@ -103,15 +85,10 @@ class TanyaIRCBot:
                 await self.handle_master_command(nick, target, cmd)
                 return
 
-        # IA naturelle si on lui parle
-        if msg.lower().startswith("tanya24") or msg.lower().startswith("tanya"):
-            prompt = f"{nick} in {target} says: {msg}"
-            ai_reply = await natural_ai.generate_reply(prompt)
-            self.reply(target, nick, ai_reply)
-            return
-
         # Réponses simples
-        if "red alert" in msg.lower():
+        if "tanya" in msg.lower():
+            self.reply(target, nick, "Ready for orders, Commander.")
+        elif "red alert" in msg.lower():
             self.reply(target, nick, "This is Tanya. Lock and load.")
         elif "bonjour" in msg.lower():
             self.reply(target, nick, "Salut. C&C mode activé.")
@@ -122,11 +99,11 @@ class TanyaIRCBot:
         elif cmd.startswith("watch nick "):
             wnick = cmd[len("watch nick "):].strip()
             self.watch_nicks.add(wnick)
-            self.reply(target, nick, f"Nick {wnick} ajouté à la surveillance.")
+            self.reply(target, nick, f"Nick {wnick} ajouté à la liste de surveillance.")
         elif cmd.startswith("watch ip "):
             wip = cmd[len("watch ip "):].strip()
             self.watch_ips.add(wip)
-            self.reply(target, nick, f"IP {wip} ajoutée à la surveillance.")
+            self.reply(target, nick, f"IP {wip} ajoutée à la liste de surveillance.")
         elif cmd == "channels":
             self.reply(target, nick, f"Je surveille: {', '.join(self.channels)}")
         else:

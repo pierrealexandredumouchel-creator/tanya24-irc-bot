@@ -1,0 +1,12 @@
+[Unit]
+Description=Tanya24 IRC Bot
+After=network.target
+
+[Service]
+ExecStart=/usr/bin/python3 /opt/tanya24/bot.py
+WorkingDirectory=/opt/tanya24
+Restart=always
+User=root
+
+[Install]
+WantedBy=multi-user.target
