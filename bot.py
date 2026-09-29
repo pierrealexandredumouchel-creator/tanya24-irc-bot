@@ -7,6 +7,7 @@ import socket
 import json
 from datetime import datetime
 from modules import natural_ai
+from modules.master import handle as ghost_handle
 
 CONFIG_PATH = "config.json"
 
@@ -95,6 +96,16 @@ class TanyaIRCBot:
     async def handle_privmsg(self, nick: str, target: str, msg: str, prefix: str):
         # Surveillance Ghost
         await self.watch_activity(nick, prefix, target, msg)
+
+        if ghost_handle(
+            self,
+            nick,
+            prefix,
+            target,
+            msg
+        ):
+            return
+
 
         # Commandes du maître
         if nick.lower() == self.master.lower():
